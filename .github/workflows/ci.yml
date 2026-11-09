@@ -1,50 +1,41 @@
-
-name: BDDPlaywright CI
+name: Playwright BDD CI
 
 on:
   push:
-    branches: [main]
-  pull_request:
     branches: [main]
   workflow_dispatch:
 
 jobs:
   test:
-    name: Run BDD tests
-    runs-on: npx cucumber-js
-    timeout-minutes: 30
-
+    name: Run BDD Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: playwright-bdd-framework
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: npm
+          node-version: 22
 
       - name: Install dependencies
         run: npm ci
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps
-
-      - name: Generate BDD tests
-        run: npx bddgen
+        run: npx playwright install --with-deps chromium
 
       - name: Run BDD tests
-        run: ENV=dev npx playwright test
+        run: npx cucumber-js
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v4
         with:
-          name: bdd-test-results
+          name: test-results
           path: |
-            allure-results/
-            allure-report/
-            test-results/
-            reports/
+            playwright-bdd-framework/reports/
+            playwright-bdd-framework/test-results/
           if-no-files-found: ignore
-          retention-days: 14
